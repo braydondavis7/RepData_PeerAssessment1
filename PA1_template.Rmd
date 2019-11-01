@@ -3,6 +3,7 @@ title: "Activity Monitoring Data"
 author: "Braydon"
 date: "10/30/2019"
 output: html_document
+keep_md: true
 ---
 
 Clear workspace
