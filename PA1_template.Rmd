@@ -2,36 +2,38 @@
 title: "Activity Monitoring Data"
 author: "Braydon"
 date: "10/30/2019"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 keep_md: true
 ---
 
 Clear workspace
-```{r echo=TRUE}
+```{r}
 rm(list=ls())
 ```
 Load necessary libraries
-```{r echo=TRUE}
+```{r}
 library(dplyr)
 library(ggplot2)
 ```
 Load the activity data file and explore
-```{r echo=TRUE}
+```{r}
 activity_data <- read.csv("/Users/braydondavis/Downloads/activity.csv",header=TRUE,na.strings = "NA")
 str(activity_data)
 ```
 Change date from factor to a date
-```{r echo=TRUE}
+```{r}
 activity_data_cleaned <- activity_data
 activity_data_cleaned$date <- as.Date(activity_data_cleaned$date)
 str(activity_data_cleaned)
 ```
 Remove NAs from the data
-```{r echo=TRUE}
+```{r}
 activity_data_cleaned <- na.omit(activity_data_cleaned)
 ```
 Create new variables
-```{r echo=TRUE}
+```{r}
 activity_data_cleaned$year <- as.numeric(format(activity_data_cleaned$date, "%Y"))
 activity_data_cleaned$month <- as.numeric(format(activity_data_cleaned$date, "%m"))
 activity_data_cleaned$day <- as.numeric(format(activity_data_cleaned$date, "%d"))
@@ -39,74 +41,73 @@ summary(activity_data_cleaned)
 ```
 # Question 1 - What is mean total number of steps taken per day?
 Create a histogram of the total number of steps taken per day
-```{r echo=TRUE}
+```{r}
 steps_per_day <- activity_data_cleaned %>% select(steps, date) %>% group_by(date) %>% summarize(sum_steps = sum(steps))
 ggplot(data = steps_per_day,aes(x=sum_steps))+
               geom_histogram(aes(y=..count..,fill=..count..),binwidth=1000,colour="black")+
               labs(x="Step Count",y="Frequency",title = "Frequency of Daily Step Count")
 ```
 Find the mean total of number of steps taken
-```{r echo=TRUE}
+```{r}
 mean(steps_per_day$sum_steps)
 ```
 # Question 2 - What is the average daily activity pattern?
 Create interval dataset with mean steps
-```{r echo=TRUE}
+```{r}
 interval <- activity_data_cleaned %>% select(interval,steps) %>% group_by(interval) %>% summarize(mean_steps = mean(steps))
 ```
 Create time series plot of average steps taken by interval
-```{r echo=TRUE}
+```{r}
 ggplot(data = interval, aes(interval,mean_steps))+
         geom_line(color = "dark red")+
         ggtitle("Average Steps Taken by Interval")+
         labs(x= "Interval",y="Average Steps")
 ```
 Find the interval that has the maximum number of steps
-```{r echo=TRUE}
+```{r}
 interval[which.max(interval$mean_steps),]
 ```
 # Question 3 - Impute missing values
 Find the number of missing values in the dataset
-```{r echo=TRUE}
+```{r}
 sum(is.na(activity_data$steps))
 ```
 Impute NAs with mean 
-```{r echo=TRUE}
+```{r}
 activity_data_filled <- activity_data
 activity_data_filled <- activity_data_filled %>% group_by(interval) %>%
 mutate(steps=ifelse(is.na(steps),mean(steps,na.rm=TRUE),steps))
 ```
 Make a histogram of the total number of steps taken each day
-```{r echo=TRUE}
+```{r}
 steps_per_day2 <- activity_data_filled %>% select (date,steps) %>% group_by(date) %>% summarize(steps = sum(steps))
 ggplot(data=steps_per_day2,aes(x=steps))+
         geom_histogram(aes(y=..count..,fill=..count..),binwidth=1000,colour="black")
 ```
 Calculate the mean of the full dataset without NAs
-```{r echo=TRUE}
+```{r}
 mean(steps_per_day2$steps)
 ```
 Calculate the median of the full dataset without NAs
-```{r echo=TRUE}
+```{r}
 median(steps_per_day2$steps)
 ```
 # Question 4 - Are there differences in activity patterns between weekdays and weekends?
 Create Week_Type column
-```{r echo=TRUE}
+```{r}
 activity_data_filled$date <- as.Date(activity_data_filled$date)
 activity_data_filled <- activity_data_filled %>% mutate(week_type = ifelse(weekdays(date) == "Saturday" | weekdays(date) == "Sunday","Weekend","Weekday"))
 ```
 Average steps taken in 5 minute intervals
-```{r echo=TRUE}
+```{r}
 interval_full_avg <- activity_data_filled %>% group_by(interval,week_type) %>% summarize(steps = mean(steps))
 ```
 Create a panel plot with geom_line
-```{r echo=TRUE}
+```{r}
 ggplot(data = interval_full_avg, aes(x=interval,y=steps, color = week_type))+
         geom_line()+
         facet_wrap(~week_type,ncol=1,nrow=2)
 ```
-
 
 
 
